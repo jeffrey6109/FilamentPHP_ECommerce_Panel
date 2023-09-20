@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\Product;
 use Filament\Forms;
 use Filament\Forms\Components\MarkdownEditor;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -36,9 +37,21 @@ class OrderResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
 
+    protected static ?string $activeNavigationIcon = 'heroicon-s-shopping-bag';
+
     protected static ?int $navigationSort = 3;
 
     protected static ?string $navigationGroup = 'Shop';
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::where('status', '=', 'processing')->count();
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return static::getModel()::where('status', '=', 'processing')->count() > 10 ? 'warning' : 'primary';
+    }
 
 
     public static function form(Form $form): Form
@@ -61,6 +74,13 @@ class OrderResource extends Resource
                                 ->searchable()
                                 ->required(),
 
+                            // Shipping Cost
+                            TextInput::make('shipping_price')
+                                ->label('Shipping Costs')
+                                ->dehydrated()
+                                ->numeric()
+                                ->required(),
+
                             // Order Type
                             Select::make('type')
                                 ->options([
@@ -68,7 +88,7 @@ class OrderResource extends Resource
                                     'processing' => OrderStatusEnum::PROCESSING->value,
                                     'completed' => OrderStatusEnum::COMPLETED->value,
                                     'declined' => OrderStatusEnum::DECLINED->value,
-                                ])->columnSpanFull()->required(),
+                                ])->required(),
 
                             // Order Notes
                             MarkdownEditor::make('notes')
@@ -83,11 +103,17 @@ class OrderResource extends Resource
                                     // Products
                                     Select::make('product_id')
                                         ->label('Product')
-                                        ->options(Product::query()->pluck('name', 'id')),
+                                        ->options(Product::query()->pluck('name', 'id'))
+                                        ->required()
+                                        ->reactive()
+                                        ->afterStateUpdated(fn ($state, Forms\Set $set) =>
+                                        $set('unit_price', Product::find($state)?->price ?? 0)),
 
                                     // Quantity
                                     TextInput::make('quantity')
                                         ->numeric()
+                                        ->live()
+                                        ->dehydrated()
                                         ->default(1)
                                         ->required(),
 
@@ -98,7 +124,13 @@ class OrderResource extends Resource
                                         ->dehydrated()
                                         ->numeric()
                                         ->required(),
-                                ])->columns(3)
+
+                                    Placeholder::make('total_price')
+                                        ->label('Total Price')
+                                        ->content(function ($get) {
+                                            return $get('quantity') * $get('unit_price');
+                                        })
+                                ])->columns(4)
                         ])
                 ])->columnSpanFull()
             ]);
@@ -120,14 +152,6 @@ class OrderResource extends Resource
                 TextColumn::make('status')
                     ->searchable()
                     ->sortable(),
-
-                TextColumn::make('total_price')
-                    ->searchable()
-                    ->sortable()
-                    ->summarize([
-                        Sum::make()
-                            ->money()
-                    ]),
 
                 TextColumn::make('created_at')
                     ->label('Order Date')

@@ -3,13 +3,8 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\BrandResource\Pages;
-use App\Filament\Resources\BrandResource\RelationManagers;
+use App\Filament\Resources\BrandResource\RelationManagers\ProductsRelationManager;
 use App\Models\Brand;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\CreateAction;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Forms;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\Group;
 use Filament\Forms\Components\MarkdownEditor;
@@ -19,7 +14,10 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Forms\Set;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\CreateAction;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ViewAction;
@@ -27,8 +25,6 @@ use Filament\Tables\Columns\ColorColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
 
 class BrandResource extends Resource
@@ -36,6 +32,9 @@ class BrandResource extends Resource
     protected static ?string $model = Brand::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    protected static ?string $activeNavigationIcon = 'heroicon-s-rectangle-stack';
+
 
     protected static ?int $navigationSort = 1;
 
@@ -150,7 +149,7 @@ class BrandResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            ProductsRelationManager::class
         ];
     }
 

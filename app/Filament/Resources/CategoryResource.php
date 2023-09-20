@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\CategoryResource\Pages;
 use App\Filament\Resources\CategoryResource\RelationManagers;
+use App\Filament\Resources\CategoryResource\RelationManagers\ProductsRelationManager;
 use App\Models\Category;
 use Filament\Forms;
 use Filament\Forms\Components\Group;
@@ -35,6 +36,8 @@ class CategoryResource extends Resource
     protected static ?string $model = Category::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
+
+    protected static ?string $activeNavigationIcon = 'heroicon-s-tag';
 
     protected static ?int $navigationSort = 4;
 
@@ -136,7 +139,7 @@ class CategoryResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            ProductsRelationManager::class
         ];
     }
 
